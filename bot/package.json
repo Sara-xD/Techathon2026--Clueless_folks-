@@ -1,0 +1,23 @@
+{
+  "name": "techathon-bot",
+  "version": "1.0.0",
+  "description": "Discord bot (and offline mock CLI) that answers office device/usage questions from the shared backend",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "smoketest": "tsx src/smoketest.ts"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "discord.js": "^14.15.3",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.9",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.3"
+  }
+}

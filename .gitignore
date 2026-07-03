@@ -1,0 +1,12 @@
+node_modules/
+dist/
+build/
+.env
+!.env.example
+*.log
+server.log
+server.err.log
+pid.txt
+vite.pid.txt
+*.tsbuildinfo
+.DS_Store

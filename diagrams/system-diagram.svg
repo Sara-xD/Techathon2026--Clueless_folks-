@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 760" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#4a5578" />
+    </marker>
+    <marker id="arrowAccent" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#ff8a3d" />
+    </marker>
+  </defs>
+
+  <rect width="1160" height="760" fill="#0b0e17" />
+  <text x="580" y="34" text-anchor="middle" fill="#e8ecff" font-size="22" font-weight="700">
+    Office Watch — System Diagram (Data Flow: Device State → Backend → Dashboard + Discord Bot → User)
+  </text>
+  <text x="580" y="56" text-anchor="middle" fill="#8a92b2" font-size="12">
+    Techathon2026-Clueless_Folks · hand-authored (no Mermaid)
+  </text>
+
+  <!-- Layer 1: Simulated Device Layer -->
+  <g>
+    <rect x="60" y="90" width="1040" height="110" rx="12" fill="#141a2b" stroke="#2c3552" stroke-width="2" />
+    <text x="80" y="116" fill="#ffb703" font-size="14" font-weight="700">LAYER 1 — SIMULATED DEVICE LAYER</text>
+    <text x="80" y="136" fill="#c7cce0" font-size="12">In-process Simulator (Node.js, backend/src/simulator) — no physical hardware</text>
+
+    <g font-size="11" fill="#e8ecff">
+      <rect x="80" y="150" width="290" height="34" rx="6" fill="#1c2333" stroke="#3a4666" />
+      <text x="95" y="171">Drawing Room — 2 fans, 3 lights</text>
+
+      <rect x="390" y="150" width="290" height="34" rx="6" fill="#1c2333" stroke="#3a4666" />
+      <text x="405" y="171">Work Room 1 — 2 fans, 3 lights</text>
+
+      <rect x="700" y="150" width="290" height="34" rx="6" fill="#1c2333" stroke="#3a4666" />
+      <text x="715" y="171">Work Room 2 — 2 fans, 3 lights</text>
+    </g>
+    <text x="80" y="196" fill="#6b7aa0" font-size="10.5">
+      Each device: {status, ratedWatts, currentWatts, roomId, lastChanged, onSince}. Tick loop (SIM_TICK_MS) randomly flips devices + jitters wattage. Simulated clock runs 60x real time.
+    </text>
+  </g>
+
+  <line x1="580" y1="200" x2="580" y2="238" stroke="#4a5578" stroke-width="2" marker-end="url(#arrow)" />
+  <text x="595" y="224" fill="#8a92b2" font-size="10.5">state changes (EventEmitter: "tick", "device-change")</text>
+
+  <!-- Layer 2: Backend -->
+  <g>
+    <rect x="60" y="240" width="1040" height="130" rx="12" fill="#161c30" stroke="#ff8a3d" stroke-width="2" />
+    <text x="80" y="266" fill="#ff8a3d" font-size="14" font-weight="700">LAYER 2 — BACKEND (single source of truth)</text>
+    <text x="80" y="286" fill="#c7cce0" font-size="12">Express REST API + Socket.IO WebSocket server (backend/src/server.ts)</text>
+
+    <rect x="80" y="300" width="330" height="52" rx="6" fill="#1c2333" stroke="#3a4666" />
+    <text x="94" y="318" fill="#e8ecff" font-size="11.5" font-weight="600">REST API (/api)</text>
+    <text x="94" y="334" fill="#9aa2c0" font-size="10">/state /devices /rooms/:id /usage</text>
+    <text x="94" y="347" fill="#9aa2c0" font-size="10">/alerts · POST /devices/:id/toggle</text>
+
+    <rect x="425" y="300" width="330" height="52" rx="6" fill="#1c2333" stroke="#3a4666" />
+    <text x="439" y="318" fill="#e8ecff" font-size="11.5" font-weight="600">WebSocket (Socket.IO)</text>
+    <text x="439" y="334" fill="#9aa2c0" font-size="10">emits "state:update" on every tick</text>
+    <text x="439" y="347" fill="#9aa2c0" font-size="10">and on-demand device toggle</text>
+
+    <rect x="770" y="300" width="230" height="52" rx="6" fill="#1c2333" stroke="#3a4666" />
+    <text x="784" y="318" fill="#e8ecff" font-size="11.5" font-weight="600">Alerts Engine</text>
+    <text x="784" y="334" fill="#9aa2c0" font-size="10">after-hours + continuous-2h</text>
+    <text x="784" y="347" fill="#9aa2c0" font-size="10">rules, derived on every read</text>
+  </g>
+
+  <!-- Arrows down to Dashboard and Bot -->
+  <line x1="330" y1="370" x2="230" y2="420" stroke="#4a5578" stroke-width="2" marker-end="url(#arrow)" />
+  <text x="140" y="400" fill="#8a92b2" font-size="10.5">WS push: state:update</text>
+
+  <line x1="230" y1="480" x2="330" y2="372" stroke="#ff8a3d" stroke-width="2" marker-end="url(#arrowAccent)" stroke-dasharray="4 3" />
+  <text x="150" y="452" fill="#ff8a3d" font-size="10.5">socket "device:toggle" (manual override)</text>
+
+  <line x1="830" y1="370" x2="900" y2="420" stroke="#4a5578" stroke-width="2" marker-end="url(#arrow)" />
+  <text x="835" y="400" fill="#8a92b2" font-size="10.5">REST GET (on command)</text>
+
+  <!-- Layer 3: Consumers -->
+  <g>
+    <!-- Dashboard -->
+    <rect x="60" y="420" width="480" height="170" rx="12" fill="#141a2b" stroke="#7fd4ff" stroke-width="2" />
+    <text x="80" y="446" fill="#7fd4ff" font-size="14" font-weight="700">WEB DASHBOARD (React + Vite + Socket.IO client)</text>
+    <text x="80" y="466" fill="#c7cce0" font-size="11.5">dashboard/src — connects once, receives push updates, no polling</text>
+
+    <rect x="80" y="480" width="130" height="46" rx="6" fill="#1c2333" stroke="#3a4666" />
+    <text x="92" y="498" fill="#e8ecff" font-size="10.5">Office layout</text>
+    <text x="92" y="512" fill="#9aa2c0" font-size="9.5">(glow / spin)</text>
+
+    <rect x="222" y="480" width="130" height="46" rx="6" fill="#1c2333" stroke="#3a4666" />
+    <text x="234" y="498" fill="#e8ecff" font-size="10.5">Live device panel</text>
+    <text x="234" y="512" fill="#9aa2c0" font-size="9.5">by room, toggle switch</text>
+
+    <rect x="364" y="480" width="150" height="46" rx="6" fill="#1c2333" stroke="#3a4666" />
+    <text x="376" y="498" fill="#e8ecff" font-size="10.5">Power meter</text>
+    <text x="376" y="512" fill="#9aa2c0" font-size="9.5">total + per-room bars</text>
+
+    <rect x="80" y="536" width="434" height="40" rx="6" fill="#1c2333" stroke="#3a4666" />
+    <text x="92" y="560" fill="#e8ecff" font-size="10.5">Active alerts panel (timestamped, warning/critical)</text>
+
+    <line x1="300" y1="590" x2="300" y2="630" stroke="#7fd4ff" stroke-width="2" marker-end="url(#arrow)" />
+    <text x="315" y="614" fill="#7fd4ff" font-size="10.5">renders in browser</text>
+
+    <!-- Discord bot -->
+    <rect x="620" y="420" width="480" height="170" rx="12" fill="#141a2b" stroke="#37e08f" stroke-width="2" />
+    <text x="640" y="446" fill="#37e08f" font-size="14" font-weight="700">DISCORD BOT (discord.js, or mock CLI without a token)</text>
+    <text x="640" y="466" fill="#c7cce0" font-size="11.5">bot/src — same REST client the dashboard's data model is built from</text>
+
+    <rect x="640" y="480" width="150" height="46" rx="6" fill="#1c2333" stroke="#3a4666" />
+    <text x="652" y="498" fill="#e8ecff" font-size="10.5">Commands</text>
+    <text x="652" y="512" fill="#9aa2c0" font-size="9.5">!status !room !usage</text>
+
+    <rect x="802" y="480" width="150" height="46" rx="6" fill="#1c2333" stroke="#3a4666" />
+    <text x="814" y="498" fill="#e8ecff" font-size="10.5">Gemini LLM</text>
+    <text x="814" y="512" fill="#9aa2c0" font-size="9.5">humanizes facts (optional)</text>
+
+    <rect x="640" y="536" width="312" height="40" rx="6" fill="#1c2333" stroke="#3a4666" />
+    <text x="652" y="560" fill="#e8ecff" font-size="10.5">Alert watcher — polls /api/alerts, edge-triggered</text>
+
+    <line x1="860" y1="590" x2="860" y2="630" stroke="#37e08f" stroke-width="2" marker-end="url(#arrow)" />
+    <text x="700" y="614" fill="#37e08f" font-size="10.5">reply in channel / proactive alert post</text>
+  </g>
+
+  <!-- Users -->
+  <rect x="150" y="630" width="300" height="60" rx="10" fill="#1c2333" stroke="#7fd4ff" stroke-width="2" />
+  <text x="300" y="655" text-anchor="middle" fill="#e8ecff" font-size="13" font-weight="600">Boss / User — Browser</text>
+  <text x="300" y="674" text-anchor="middle" fill="#9aa2c0" font-size="10.5">sees live dashboard, no manual refresh</text>
+
+  <rect x="710" y="630" width="300" height="60" rx="10" fill="#1c2333" stroke="#37e08f" stroke-width="2" />
+  <text x="860" y="655" text-anchor="middle" fill="#e8ecff" font-size="13" font-weight="600">Boss / User — Discord</text>
+  <text x="860" y="674" text-anchor="middle" fill="#9aa2c0" font-size="10.5">runs !status / !room / !usage, gets alerts</text>
+
+  <text x="580" y="730" text-anchor="middle" fill="#6b7aa0" font-size="11">
+    Architecture requirement: [Simulated Device Layer] → [Backend API] → [Web UI] &amp;&amp; [Discord Bot] — one source of truth, two read-only views.
+  </text>
+</svg>

@@ -1,0 +1,18 @@
+{
+  "name": "techathon2026-clueless-folks",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Office Watch — live lights/fans dashboard + Discord bot (Techathon Nationals 2026 preliminary submission, team Clueless_Folks)",
+  "scripts": {
+    "install:all": "npm install --prefix backend && npm install --prefix dashboard && npm install --prefix bot",
+    "dev": "concurrently -n backend,dashboard,bot -c blue,green,yellow \"npm run dev --prefix backend\" \"npm run dev --prefix dashboard\" \"npm run dev --prefix bot\"",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:dashboard": "npm run dev --prefix dashboard",
+    "dev:bot": "npm run dev --prefix bot",
+    "typecheck": "npm run typecheck --prefix backend && npm run typecheck --prefix dashboard && npm run typecheck --prefix bot",
+    "build": "npm run build --prefix backend && npm run build --prefix dashboard && npm run build --prefix bot"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

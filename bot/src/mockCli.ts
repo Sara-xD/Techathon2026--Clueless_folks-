@@ -25,9 +25,19 @@ export function startMockCli() {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout, prompt: "> " });
   rl.prompt();
 
-  rl.on("line", async (line) => {
+  // Readline emits "line" synchronously for every buffered line (relevant
+  // when stdin is piped rather than typed interactively) and fires "close"
+  // right after, without waiting for our async handlers. Chaining each
+  // line's processing onto a single promise -- and awaiting that chain
+  // before exiting on close -- guarantees every command's output is
+  // printed even when input arrives faster than the backend can respond.
+  let processingChain: Promise<void> = Promise.resolve();
+  let closing = false;
+
+  async function processLine(line: string) {
     const input = line.trim();
     if (input === "exit" || input === "quit") {
+      closing = true;
       rl.close();
       return;
     }
@@ -47,10 +57,21 @@ export function startMockCli() {
       console.error(`[bot] command failed: ${(err as Error).message}`);
     }
 
-    rl.prompt();
+    if (!closing) rl.prompt();
+  }
+
+  rl.on("line", (line) => {
+    processingChain = processingChain.then(() => processLine(line));
   });
 
-  rl.on("close", () => {
+  rl.on("close", async () => {
+    // Readline auto-closes as soon as stdin hits EOF (always true for piped
+    // input, since all lines are available instantly) -- independently of
+    // whichever "exit" line is still working its way through the queue.
+    // Set the flag immediately so any processLine still pending skips its
+    // now-invalid rl.prompt() call instead of throwing ERR_USE_AFTER_CLOSE.
+    closing = true;
+    await processingChain;
     stopWatching();
     console.log("[bot] mock CLI stopped.");
     process.exit(0);
